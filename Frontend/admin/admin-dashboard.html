@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard | Grand Hotel</title>
+
+<script>
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+
+  if (!token || role !== "admin") {
+    window.location.href = "../login.html";
+  }
+</script>
+
+<style>
+*{
+  box-sizing:border-box;
+  font-family:Arial,sans-serif
+}
+body{
+  margin:0;
+  background:#f4f6f8
+}
+
+/* NAVBAR */
+header{
+  background:#0b2a4a;
+  padding:15px 60px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center
+}
+.logo{
+  color:#f4c430;
+  font-size:22px;
+  font-weight:bold
+}
+nav a{
+  color:white;
+  text-decoration:none;
+  margin-left:25px;
+  font-weight:500
+}
+nav a:hover{
+  color:#f4c430
+}
+
+/* HERO */
+.hero{
+  height:40vh;
+  background:
+    linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,.5)),
+    url("../assets/hero.jpg") center/cover no-repeat;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  text-align:center
+}
+.hero h1{
+  font-size:40px
+}
+
+/* CARDS */
+.section{
+  padding:60px;
+  text-align:center
+}
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:25px
+}
+.card{
+  background:white;
+  border-radius:10px;
+  box-shadow:0 10px 25px rgba(0,0,0,.1);
+  padding:30px;
+  transition:.3s
+}
+.card:hover{
+  transform:translateY(-5px)
+}
+.card h3{
+  color:#0b2a4a
+}
+.card p{
+  color:#555;
+  margin:10px 0 20px
+}
+.card a{
+  display:inline-block;
+  padding:12px 25px;
+  background:#f4c430;
+  color:black;
+  text-decoration:none;
+  border-radius:6px;
+  font-weight:bold
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">🏨 GRAND HOTEL</div>
+  <nav>
+    <a href="../index.html">Home</a>
+    <a href="admin-dashboard.html">Dashboard</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div>
+    <h1>Admin Panel</h1>
+    <p>Manage hotel operations efficiently</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="cards">
+
+    <!-- MANAGE ROOMS -->
+    <div class="card">
+      <h3>Manage Rooms</h3>
+      <p>Add, update or remove rooms</p>
+      <a href="admin-rooms.html">Manage</a>
+    </div>
+
+    <!-- VIEW ROOM DETAILS -->
+    <div class="card">
+      <h3>View Room Details</h3>
+      <p>View room details as users see them</p>
+      <a href="../rooms.html">View</a>
+    </div>
+
+    <!-- MANAGE BOOKINGS -->
+    <div class="card">
+      <h3>Manage Bookings</h3>
+      <p>Approve or cancel bookings</p>
+      <a href="admin-booking.html">View</a>
+    </div>
+
+  </div>
+</section>
+
+<script>
+function logout(){
+  localStorage.clear();
+  window.location.href="../login.html";
+}
+</script>
+
+</body>
+</html>

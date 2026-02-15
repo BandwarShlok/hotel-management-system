@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My Bills | Grand Hotel</title>
+
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{margin:0;background:#f4f6f8;color:#222}
+
+header{
+  background:#0b2a4a;
+  padding:15px 60px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center
+}
+.logo{color:#f4c430;font-size:22px;font-weight:bold}
+nav button{
+  background:#f4c430;
+  border:none;
+  padding:8px 16px;
+  border-radius:5px;
+  font-weight:bold;
+  cursor:pointer;
+  margin-left:10px
+}
+
+.container{
+  max-width:900px;
+  margin:50px auto;
+  padding:20px
+}
+
+.bill{
+  background:white;
+  padding:30px;
+  border-radius:10px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.1);
+  margin-bottom:30px
+}
+
+.bill h2{
+  text-align:center;
+  color:#0b2a4a;
+  margin-bottom:20px
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:10px
+}
+
+.total{
+  border-top:2px solid #ddd;
+  padding-top:15px;
+  margin-top:15px;
+  font-weight:bold
+}
+
+.no-bill{
+  background:white;
+  padding:40px;
+  text-align:center;
+  border-radius:10px
+}
+
+.print-btn{
+  text-align:center;
+  margin-top:20px
+}
+.print-btn button{
+  background:#f4c430;
+  border:none;
+  padding:10px 20px;
+  border-radius:6px;
+  font-weight:bold;
+  cursor:pointer
+}
+</style>
+
+<script>
+/* 🔒 AUTH CHECK */
+const token = localStorage.getItem("token");
+const role = localStorage.getItem("role");
+
+if (!token || role !== "customer") {
+  window.location.href = "../login.html";
+}
+</script>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">🏨 GRAND HOTEL</div>
+  <nav>
+    <button onclick="goDashboard()">Dashboard</button>
+    <button onclick="logout()">Logout</button>
+  </nav>
+</header>
+
+<div class="container" id="billContainer"></div>
+
+<script>
+async function loadBills() {
+  const container = document.getElementById("billContainer");
+
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/bookings/my",
+      {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+      }
+    );
+
+    const bookings = await response.json();
+
+    if (!response.ok) {
+      container.innerHTML = "<div class='no-bill'>Server error</div>";
+      return;
+    }
+
+    const approvedBookings = bookings.filter(
+      b => b.status === "Approved"
+    );
+
+    if (approvedBookings.length === 0) {
+      container.innerHTML = `
+        <div class="no-bill">
+          <h2>No bills available</h2>
+          <p>No approved bookings yet.</p>
+        </div>
+      `;
+      return;
+    }
+
+    let html = "";
+
+    approvedBookings.forEach((b, index) => {
+      const checkIn = new Date(b.checkIn);
+      const checkOut = new Date(b.checkOut);
+      const days = Math.max(
+        1,
+        (checkOut - checkIn) / (1000 * 60 * 60 * 24)
+      );
+
+      const pricePerDay = 100; // temp price
+      const total = days * pricePerDay;
+
+      html += `
+        <div class="bill">
+          <h2>Invoice #${index + 1}</h2>
+
+          <div class="row">
+            <span>Room</span>
+            <strong>${b.roomId}</strong>
+          </div>
+
+          <div class="row">
+            <span>Check-in</span>
+            <strong>${b.checkIn}</strong>
+          </div>
+
+          <div class="row">
+            <span>Check-out</span>
+            <strong>${b.checkOut}</strong>
+          </div>
+
+          <div class="row">
+            <span>Days</span>
+            <strong>${days}</strong>
+          </div>
+
+          <div class="row">
+            <span>Price / Day</span>
+            <strong>$${pricePerDay}</strong>
+          </div>
+
+          <div class="row total">
+            <span>Total Amount</span>
+            <strong>$${total}</strong>
+          </div>
+
+          <div class="print-btn">
+            <button onclick="window.print()">Print Bill</button>
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+
+  } catch (err) {
+    container.innerHTML = `
+      <div class="no-bill">
+        <h2>Error</h2>
+        <p>Unable to load bills</p>
+      </div>
+    `;
+  }
+}
+
+loadBills();
+
+function goDashboard(){
+  window.location.href = "dashboard.html";
+}
+
+function logout(){
+  localStorage.clear();
+  window.location.href = "../login.html";
+}
+</script>
+
+</body>
+</html>

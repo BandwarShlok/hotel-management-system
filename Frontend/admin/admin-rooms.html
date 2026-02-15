@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Manage Rooms | Admin</title>
+
+<style>
+*{box-sizing:border-box;font-family:Arial}
+body{margin:0;background:#f4f6f8}
+
+header{
+  background:#0b2a4a;
+  padding:15px 60px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center
+}
+.logo{color:#f4c430;font-size:22px;font-weight:bold}
+nav button{
+  background:#f4c430;
+  border:none;
+  padding:8px 16px;
+  font-weight:bold;
+  cursor:pointer
+}
+
+.container{padding:50px 60px}
+
+.form-box{
+  background:white;
+  padding:25px;
+  border-radius:10px;
+  margin-bottom:40px
+}
+
+label{display:block;font-weight:bold;margin-top:15px}
+input,select{
+  width:100%;
+  padding:10px;
+  margin-top:8px
+}
+
+button{
+  margin-top:20px;
+  background:#f4c430;
+  border:none;
+  padding:10px;
+  font-weight:bold;
+  cursor:pointer
+}
+
+table{
+  width:100%;
+  background:white;
+  border-collapse:collapse
+}
+th,td{
+  padding:12px;
+  border-bottom:1px solid #ddd
+}
+th{background:#0b2a4a;color:white}
+
+.delete-btn{
+  background:red;
+  color:white;
+  border:none;
+  padding:6px 10px;
+  cursor:pointer
+}
+
+.error{color:red;margin-top:10px}
+</style>
+
+<script>
+const token = localStorage.getItem("token");
+const role = localStorage.getItem("role");
+
+if (!token || role !== "admin") {
+  window.location.href = "../login.html";
+}
+</script>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">🏨 GRAND HOTEL</div>
+  <nav>
+    <button onclick="logout()">Logout</button>
+  </nav>
+</header>
+
+<div class="container">
+  <h1>Manage Rooms</h1>
+
+  <div class="form-box">
+    <label>Room Number</label>
+    <input id="roomNo">
+
+    <label>Room Type</label>
+    <select id="type">
+      <option value="">Select</option>
+      <option>Deluxe Room</option>
+      <option>Suite Room</option>
+      <option>Standard Room</option>
+    </select>
+
+    <label>Price</label>
+    <input type="number" id="price">
+
+    <label>Description</label>
+    <input id="description">
+
+    <button onclick="addRoom()">Add Room</button>
+    <div class="error" id="msg"></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Room No</th>
+        <th>Type</th>
+        <th>Price</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="roomTable"></tbody>
+  </table>
+</div>
+
+<script>
+const table = document.getElementById("roomTable");
+const msg = document.getElementById("msg");
+
+async function loadRooms(){
+  const res = await fetch("http://localhost:5000/api/rooms");
+  const rooms = await res.json();
+
+  table.innerHTML = "";
+  rooms.forEach(r=>{
+    table.innerHTML += `
+      <tr>
+        <td>${r.roomNo}</td>
+        <td>${r.type}</td>
+        <td>$${r.price}</td>
+        <td>${r.availability}</td>
+        <td>
+          <button class="delete-btn" onclick="deleteRoom('${r._id}')">
+            Delete
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+async function addRoom(){
+  const data = {
+    roomNo: roomNo.value,
+    type: type.value,
+    price: price.value,
+    description: description.value
+  };
+
+  if (!data.roomNo || !data.type || !data.price) {
+    msg.textContent = "All fields are required";
+    return;
+  }
+
+  const res = await fetch("http://localhost:5000/api/rooms", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":"Bearer " + token
+    },
+    body:JSON.stringify(data)
+  });
+
+  const result = await res.json();
+
+  if (!res.ok) {
+    msg.textContent = result.message;
+    return;
+  }
+
+  msg.textContent = "";
+  loadRooms();
+}
+
+async function deleteRoom(id){
+  await fetch(`http://localhost:5000/api/rooms/${id}`,{
+    method:"DELETE",
+    headers:{ "Authorization":"Bearer " + token }
+  });
+  loadRooms();
+}
+
+function logout(){
+  localStorage.clear();
+  window.location.href="../login.html";
+}
+
+loadRooms();
+</script>
+
+</body>
+</html>

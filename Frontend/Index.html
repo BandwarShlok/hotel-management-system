@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Grand Hotel | Home</title>
+
+  <style>
+    * { box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { margin: 0; background: #f4f6f8; color: #222; }
+
+    header {
+      background: #0b2a4a;
+      padding: 15px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header .logo {
+      color: #f4c430;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    header nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 25px;
+      font-weight: 500;
+    }
+
+    .hero {
+      height: 85vh;
+      background:
+        linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+        url("assets/hero.jpg") center/cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: white;
+    }
+
+    .hero h1 { font-size: 48px; margin-bottom: 10px; }
+    .hero p { font-size: 20px; margin-bottom: 25px; }
+
+    .hero button {
+      padding: 14px 30px;
+      font-size: 16px;
+      background: #f4c430;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .rooms {
+      padding: 60px;
+      text-align: center;
+    }
+
+    .room-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+    }
+
+    .room-card {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .room-card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .content {
+      padding: 20px;
+      text-align: left;
+    }
+
+    .price { font-weight: bold; margin-bottom: 15px; }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .buttons button {
+      flex: 1;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      border: none;
+    }
+
+    .details-btn { background: #ddd; }
+    .book-btn { background: #f4c430; }
+
+    footer {
+      background: #0b2a4a;
+      color: white;
+      padding: 40px 60px;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<header>
+  <div class="logo">🏨 GRAND HOTEL</div>
+  <nav id="navbarLinks"></nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div>
+    <h1>Welcome to Your Perfect Stay</h1>
+    <p>Experience Luxury & Comfort</p>
+    <button onclick="bookNow()">Book Now</button>
+  </div>
+</section>
+
+<!-- ROOMS -->
+<section class="rooms">
+  <h2>Choose Your Room</h2>
+
+  <div class="room-cards">
+
+    <div class="room-card">
+      <img src="assets/delux.jpg">
+      <div class="content">
+        <h3>Deluxe Room</h3>
+        <p class="price">$45 / Night</p>
+        <div class="buttons">
+          <button class="details-btn" onclick="viewDetails('deluxe')">View Details</button>
+          <button class="book-btn" onclick="bookNow()">Book Now</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="room-card">
+      <img src="assets/Suite Room Image.jpg">
+      <div class="content">
+        <h3>Suite Room</h3>
+        <p class="price">$34 / Night</p>
+        <div class="buttons">
+          <button class="details-btn" onclick="viewDetails('suite')">View Details</button>
+          <button class="book-btn" onclick="bookNow()">Book Now</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="room-card">
+      <img src="assets/standard.jpg">
+      <div class="content">
+        <h3>Standard Room</h3>
+        <p class="price">$21 / Night</p>
+        <div class="buttons">
+          <button class="details-btn" onclick="viewDetails('standard')">View Details</button>
+          <button class="book-btn" onclick="bookNow()">Book Now</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 Grand Hotel</p>
+</footer>
+
+<!-- SCRIPT -->
+<script>
+const token = localStorage.getItem("token");
+const role = localStorage.getItem("role");
+const navbar = document.getElementById("navbarLinks");
+
+/* NAVBAR */
+if (token && role) {
+  navbar.innerHTML = `
+    <a href="index.html">Home</a>
+    <a href="rooms.html">Rooms</a>
+    ${
+      role === "admin"
+        ? `<a href="admin/admin-dashboard.html">Dashboard</a>`
+        : `<a href="customer/dashboard.html">Dashboard</a>`
+    }
+    <a href="#" onclick="logout()">Logout</a>
+  `;
+} else {
+  navbar.innerHTML = `
+    <a href="index.html">Home</a>
+    <a href="rooms.html">Rooms</a>
+    <a href="login.html">Login</a>
+  `;
+}
+
+/* VIEW DETAILS — CORRECT & SAFE */
+async function viewDetails(roomType) {
+  const res = await fetch("http://localhost:5000/api/rooms");
+  const rooms = await res.json();
+
+  const room = rooms.find(r =>
+    r.type.toLowerCase().includes(roomType.toLowerCase())
+  );
+
+  if (!room) {
+    alert("Room not found in database");
+    return;
+  }
+
+  window.location.href = `room-detail.html?id=${room._id}`;
+}
+
+/* BOOK NOW */
+function bookNow() {
+  if (!token) {
+    window.location.href = "login.html";
+  } else {
+    window.location.href =
+      role === "admin"
+        ? "admin/admin-dashboard.html"
+        : "customer/dashboard.html";
+  }
+}
+
+function logout() {
+  localStorage.clear();
+  window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>

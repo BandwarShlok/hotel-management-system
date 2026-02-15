@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rooms | Grand Hotel</title>
+
+<style>
+*{box-sizing:border-box;font-family:Arial}
+body{margin:0;background:#f4f6f8}
+
+header{
+  background:#0b2a4a;
+  padding:15px 60px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center
+}
+.logo{color:#f4c430;font-size:22px;font-weight:bold}
+nav a{color:white;text-decoration:none;margin-left:25px}
+
+.container{padding:60px}
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:25px
+}
+.card{
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  box-shadow:0 10px 25px rgba(0,0,0,.1)
+}
+.card button{
+  margin-top:15px;
+  background:#f4c430;
+  border:none;
+  padding:10px;
+  width:100%;
+  font-weight:bold;
+  cursor:pointer
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">🏨 GRAND HOTEL</div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="rooms.html">Rooms</a>
+  </nav>
+</header>
+
+<div class="container">
+  <h1>Available Rooms</h1>
+  <div class="cards" id="roomList"></div>
+</div>
+
+<script>
+const roomList = document.getElementById("roomList");
+
+async function loadRooms(){
+  const res = await fetch("http://localhost:5000/api/rooms");
+  const rooms = await res.json();
+
+  roomList.innerHTML = "";
+
+  rooms.forEach(room => {
+    roomList.innerHTML += `
+      <div class="card">
+        <h3>${room.type}</h3>
+        <p>Room No: ${room.roomNo || "N/A"}</p>
+        <p>Price: $${room.price}</p>
+
+        <button onclick="viewRoom('${room._id}')">
+          View Details
+        </button>
+      </div>
+    `;
+  });
+}
+
+function viewRoom(id){
+  window.location.href = "room-detail.html?id=" + id;
+}
+
+loadRooms();
+</script>
+
+</body>
+</html>

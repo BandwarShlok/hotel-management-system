@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My Bookings | Grand Hotel</title>
+
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{margin:0;background:#f4f6f8;color:#222}
+
+header{
+  background:#0b2a4a;
+  padding:15px 60px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center
+}
+.logo{color:#f4c430;font-size:22px;font-weight:bold}
+nav button{
+  background:#f4c430;
+  border:none;
+  padding:8px 16px;
+  border-radius:5px;
+  font-weight:bold;
+  cursor:pointer;
+  margin-left:10px
+}
+
+.container{
+  padding:50px 60px
+}
+h1{color:#0b2a4a;margin-bottom:25px}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:white;
+  box-shadow:0 10px 25px rgba(0,0,0,0.1)
+}
+th,td{
+  padding:14px;
+  text-align:left;
+  border-bottom:1px solid #ddd
+}
+th{
+  background:#0b2a4a;
+  color:white
+}
+
+.status{
+  font-weight:bold
+}
+.status.Booked{color:orange}
+.status.Approved{color:green}
+.status.Cancelled{color:red}
+
+.no-booking{
+  background:white;
+  padding:30px;
+  border-radius:10px;
+  text-align:center;
+  box-shadow:0 10px 25px rgba(0,0,0,0.1)
+}
+
+footer{
+  background:#0b2a4a;
+  color:white;
+  text-align:center;
+  padding:25px;
+  margin-top:50px
+}
+</style>
+
+<script>
+/* 🔒 AUTH CHECK */
+const token = localStorage.getItem("token");
+const role = localStorage.getItem("role");
+
+if (!token || role !== "customer") {
+  window.location.href = "../login.html";
+}
+</script>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">🏨 GRAND HOTEL</div>
+  <nav>
+    <button onclick="goDashboard()">Dashboard</button>
+    <button onclick="logout()">Logout</button>
+  </nav>
+</header>
+
+<div class="container">
+  <h1>My Bookings</h1>
+  <div id="bookingArea"></div>
+</div>
+
+<footer>
+  <p>© 2026 Grand Hotel. All rights reserved.</p>
+</footer>
+
+<script>
+const bookingArea = document.getElementById("bookingArea");
+
+async function loadBookings() {
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/bookings/my",
+      {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+      }
+    );
+
+    const bookings = await response.json();
+
+    if (!response.ok || bookings.length === 0) {
+      bookingArea.innerHTML = `
+        <div class="no-booking">
+          <h3>No bookings found</h3>
+        </div>
+      `;
+      return;
+    }
+
+    let rows = "";
+    bookings.forEach(b => {
+      rows += `
+        <tr>
+          <td>${b.roomId}</td>
+          <td>${b.checkIn}</td>
+          <td>${b.checkOut}</td>
+          <td>${b.guests}</td>
+          <td class="status ${b.status}">${b.status}</td>
+        </tr>
+      `;
+    });
+
+    bookingArea.innerHTML = `
+      <table>
+        <tr>
+          <th>Room</th>
+          <th>Check-in</th>
+          <th>Check-out</th>
+          <th>Guests</th>
+          <th>Status</th>
+        </tr>
+        ${rows}
+      </table>
+    `;
+
+  } catch (err) {
+    bookingArea.innerHTML = `
+      <div class="no-booking">
+        <h3>Server error</h3>
+      </div>
+    `;
+  }
+}
+
+loadBookings();
+
+function goDashboard(){
+  window.location.href = "dashboard.html";
+}
+
+function logout(){
+  localStorage.clear();
+  window.location.href = "../login.html";
+}
+</script>
+
+</body>
+</html>

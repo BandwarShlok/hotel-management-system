@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register | Grand Hotel</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(
+        rgba(11,42,74,0.9),
+        rgba(11,42,74,0.9)
+      ),
+      url("assets/images/hero.jpg") center/cover no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-box {
+      background: #ffffff;
+      width: 360px;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+    }
+
+    .login-box h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #0b2a4a;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0 18px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #f4c430;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #e0b200;
+    }
+
+    .error {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .back-home {
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .back-home a {
+      text-decoration: none;
+      font-size: 14px;
+      color: #0b2a4a;
+      font-weight: bold;
+      display: block;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-box">
+    <h2>Register</h2>
+
+    <label for="username">Username</label>
+    <input type="text" id="username" placeholder="Enter username">
+
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Enter password">
+
+    <label for="role">Register As</label>
+    <select id="role">
+      <option value="">-- Select Role --</option>
+      <option value="customer">Customer</option>
+      <option value="admin">Admin</option>
+    </select>
+
+    <button onclick="register()">Register</button>
+
+    <div class="error" id="msg"></div>
+
+    <div class="back-home">
+      <a href="login.html">← Back to Login</a>
+      <a href="index.html">Back to Home</a>
+    </div>
+  </div>
+
+  <script>
+    async function register() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const role = document.getElementById("role").value;
+      const msg = document.getElementById("msg");
+
+      msg.innerText = "";
+      msg.style.color = "red";
+
+      if (!username || !password || !role) {
+        msg.innerText = "All fields are required";
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:5000/api/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            username: username,
+            password: password,
+            role: role
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          msg.innerText = data.message || "Registration failed";
+          return;
+        }
+
+        msg.style.color = "green";
+        msg.innerText = "Registration successful! Redirecting to login...";
+
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 1500);
+
+      } catch (error) {
+        msg.innerText = "Server not responding";
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Edit Room | Admin</title>
+
+<style>
+*{box-sizing:border-box;font-family:Arial}
+body{margin:0;background:#f4f6f8}
+
+header{
+  background:#0b2a4a;
+  padding:15px 60px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center
+}
+.logo{color:#f4c430;font-size:22px;font-weight:bold}
+nav button{
+  background:#f4c430;
+  border:none;
+  padding:8px 16px;
+  border-radius:5px;
+  font-weight:bold;
+  cursor:pointer
+}
+
+.container{
+  max-width:700px;
+  margin:60px auto;
+  background:white;
+  padding:40px;
+  border-radius:10px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.1)
+}
+
+label{font-weight:bold;display:block;margin-top:15px}
+input,select,textarea{
+  width:100%;
+  padding:10px;
+  margin-top:8px
+}
+
+.save-btn{
+  margin-top:25px;
+  background:#f4c430;
+  border:none;
+  padding:12px;
+  width:100%;
+  font-weight:bold;
+  cursor:pointer
+}
+</style>
+
+<script>
+const token = localStorage.getItem("token");
+const role = localStorage.getItem("role");
+
+if (!token || role !== "admin") {
+  window.location.href = "../login.html";
+}
+</script>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">🏨 GRAND HOTEL</div>
+  <nav>
+    <button onclick="goBack()">Back</button>
+  </nav>
+</header>
+
+<div class="container">
+  <h1>Edit Room</h1>
+
+  <label>Type</label>
+  <input id="type">
+
+  <label>Price</label>
+  <input type="number" id="price">
+
+  <label>Description</label>
+  <textarea id="description"></textarea>
+
+  <label>Availability</label>
+  <select id="availability">
+    <option>Available</option>
+    <option>Unavailable</option>
+  </select>
+
+  <button class="save-btn" onclick="saveRoom()">Save Changes</button>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const roomId = params.get("id");
+
+async function loadRoom() {
+  const res = await fetch("http://localhost:5000/api/rooms");
+  const rooms = await res.json();
+  const room = rooms.find(r => r._id === roomId);
+
+  document.getElementById("type").value = room.type;
+  document.getElementById("price").value = room.price;
+  document.getElementById("description").value = room.description;
+  document.getElementById("availability").value = room.availability;
+}
+
+async function saveRoom() {
+  const data = {
+    type: document.getElementById("type").value,
+    price: document.getElementById("price").value,
+    description: document.getElementById("description").value,
+    availability: document.getElementById("availability").value
+  };
+
+  await fetch(`http://localhost:5000/api/rooms/${roomId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify(data)
+  });
+
+  alert("Room updated successfully");
+}
+
+function goBack() {
+  window.location.href = "admin-rooms.html";
+}
+
+loadRoom();
+</script>
+
+</body>
+</html>

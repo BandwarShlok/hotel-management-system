@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Book Room | Grand Hotel</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #f4f6f8;
+    }
+
+    header {
+      background: #0b2a4a;
+      padding: 15px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      color: #f4c430;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 60px auto;
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+    }
+
+    button {
+      margin-top: 25px;
+      background: #f4c430;
+      border: none;
+      padding: 12px;
+      width: 100%;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .error {
+      color: red;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .success {
+      color: green;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">🏨 GRAND HOTEL</div>
+  </header>
+
+  <div class="container">
+    <h2>Book Your Room</h2>
+
+    <label>Select Room</label>
+    <select id="roomSelect"></select>
+
+    <label>Check-in Date</label>
+    <input type="date" id="checkIn">
+
+    <label>Check-out Date</label>
+    <input type="date" id="checkOut">
+
+    <label>Guests</label>
+    <select id="guests">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+    </select>
+
+    <button type="button" onclick="bookRoom()">Confirm Booking</button>
+
+    <div class="error" id="errorMsg"></div>
+    <div class="success" id="successMsg"></div>
+  </div>
+
+  <script>
+    const roomSelect = document.getElementById("roomSelect");
+    const errorMsg = document.getElementById("errorMsg");
+    const successMsg = document.getElementById("successMsg");
+
+    // LOAD ROOMS
+    async function loadRooms() {
+      try {
+        const res = await fetch("http://localhost:5000/api/rooms");
+        const rooms = await res.json();
+
+        roomSelect.innerHTML = "";
+
+        rooms
+          .filter(room => room.availability === "Available")
+          .forEach(room => {
+            const opt = document.createElement("option");
+            opt.value = room._id;
+            opt.dataset.roomType = room.type;
+            opt.textContent = `${room.type} — ₹${room.price}`;
+            roomSelect.appendChild(opt);
+          });
+
+      } catch (err) {
+        errorMsg.textContent = "Failed to load rooms";
+      }
+    }
+
+    // BOOK ROOM (✅ FIXED)
+    async function bookRoom() {
+      errorMsg.textContent = "";
+      successMsg.textContent = "";
+
+      const selected = roomSelect.options[roomSelect.selectedIndex];
+
+      const data = {
+        roomId: selected.value,
+        roomType: selected.dataset.roomType,
+        checkIn: document.getElementById("checkIn").value,
+        checkOut: document.getElementById("checkOut").value,
+        guests: document.getElementById("guests").value
+      };
+
+      if (!data.checkIn || !data.checkOut) {
+        errorMsg.textContent = "Please fill all fields";
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:5000/api/bookings", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + localStorage.getItem("token")
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+
+        if (!res.ok) {
+          errorMsg.textContent = result.message || "Booking failed";
+          return;
+        }
+
+        successMsg.textContent = "Booking successful!";
+        loadRooms();
+
+      } catch {
+        errorMsg.textContent = "Server error";
+      }
+    }
+
+    loadRooms();
+  </script>
+
+</body>
+</html>

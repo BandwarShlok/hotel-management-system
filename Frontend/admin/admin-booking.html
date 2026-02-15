@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin – Manage Bookings</title>
+
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{margin:0;background:#f4f6f8;color:#222}
+
+header{
+  background:#0b2a4a;
+  padding:15px 60px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center
+}
+.logo{color:#f4c430;font-size:22px;font-weight:bold}
+nav button{
+  background:#f4c430;
+  border:none;
+  padding:8px 16px;
+  border-radius:5px;
+  font-weight:bold;
+  cursor:pointer;
+  margin-left:10px
+}
+
+.container{
+  padding:50px 60px
+}
+h1{color:#0b2a4a;margin-bottom:25px}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:white;
+  box-shadow:0 10px 25px rgba(0,0,0,0.1)
+}
+th,td{
+  padding:14px;
+  border-bottom:1px solid #ddd;
+  text-align:left
+}
+th{
+  background:#0b2a4a;
+  color:white
+}
+
+.status{font-weight:bold}
+.Booked{color:orange}
+.Approved{color:green}
+.Cancelled{color:red}
+
+.action-btn{
+  padding:6px 12px;
+  border:none;
+  border-radius:4px;
+  cursor:pointer;
+  font-weight:bold;
+  margin-right:6px
+}
+.approve{background:green;color:white}
+.cancel{background:red;color:white}
+
+.no-booking{
+  background:white;
+  padding:30px;
+  border-radius:10px;
+  text-align:center;
+  box-shadow:0 10px 25px rgba(0,0,0,0.1)
+}
+</style>
+
+<script>
+/* 🔒 ADMIN AUTH CHECK */
+const token = localStorage.getItem("token");
+const role = localStorage.getItem("role");
+
+if (!token || role !== "admin") {
+  window.location.href = "../login.html";
+}
+</script>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">🏨 GRAND HOTEL</div>
+  <nav>
+    <button onclick="goDashboard()">Dashboard</button>
+    <button onclick="logout()">Logout</button>
+  </nav>
+</header>
+
+<div class="container">
+  <h1>Manage Bookings</h1>
+  <div id="bookingArea"></div>
+</div>
+
+<script>
+const bookingArea = document.getElementById("bookingArea");
+
+async function loadBookings() {
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/bookings",
+      {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+      }
+    );
+
+    const bookings = await response.json();
+
+    if (!response.ok || bookings.length === 0) {
+      bookingArea.innerHTML = `
+        <div class="no-booking">
+          <h3>No bookings found</h3>
+        </div>
+      `;
+      return;
+    }
+
+    let rows = "";
+
+    bookings.forEach(b => {
+      rows += `
+        <tr>
+          <td>${b.userId}</td>
+          <td>${b.roomId}</td>
+          <td>${b.checkIn}</td>
+          <td>${b.checkOut}</td>
+          <td>${b.guests}</td>
+          <td class="status ${b.status}">${b.status}</td>
+          <td>
+            ${
+              b.status === "Booked"
+                ? `
+                  <button class="action-btn approve"
+                    onclick="updateStatus('${b._id}','Approved')">
+                    Approve
+                  </button>
+                  <button class="action-btn cancel"
+                    onclick="updateStatus('${b._id}','Cancelled')">
+                    Cancel
+                  </button>
+                `
+                : "-"
+            }
+          </td>
+        </tr>
+      `;
+    });
+
+    bookingArea.innerHTML = `
+      <table>
+        <tr>
+          <th>User ID</th>
+          <th>Room</th>
+          <th>Check-in</th>
+          <th>Check-out</th>
+          <th>Guests</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+        ${rows}
+      </table>
+    `;
+
+  } catch (err) {
+    bookingArea.innerHTML = `
+      <div class="no-booking">
+        <h3>Server error</h3>
+      </div>
+    `;
+  }
+}
+
+async function updateStatus(id, status) {
+  await fetch(`http://localhost:5000/api/bookings/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${localStorage.getItem("token")}`
+    },
+    body: JSON.stringify({ status })
+  });
+
+  loadBookings();
+}
+
+function goDashboard(){
+  window.location.href = "admin-dashboard.html";
+}
+
+function logout(){
+  localStorage.clear();
+  window.location.href = "../login.html";
+}
+
+loadBookings();
+</script>
+
+</body>
+</html>

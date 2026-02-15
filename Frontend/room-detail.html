@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Room Details | Grand Hotel</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#f4f6f8}
+header{background:#0b2a4a;padding:15px 60px;display:flex;justify-content:space-between}
+.logo{color:#f4c430;font-size:22px;font-weight:bold}
+nav a{color:white;text-decoration:none;margin-left:20px}
+.container{
+  max-width:800px;
+  margin:60px auto;
+  background:white;
+  padding:40px;
+  border-radius:10px;
+  box-shadow:0 10px 25px rgba(0,0,0,.1)
+}
+.price{font-size:22px;font-weight:bold;margin-top:20px}
+button{margin-top:30px;background:#f4c430;border:none;padding:12px 25px;font-weight:bold;cursor:pointer}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">🏨 GRAND HOTEL</div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="rooms.html">Rooms</a>
+  </nav>
+</header>
+
+<div class="container" id="roomBox">
+  <h2>Loading room details...</h2>
+</div>
+
+<script>
+const box = document.getElementById("roomBox");
+const params = new URLSearchParams(window.location.search);
+const roomId = params.get("id");
+
+if (!roomId) {
+  box.innerHTML = "<h2>No room selected</h2>";
+} else {
+  loadRoom();
+}
+
+async function loadRoom() {
+  const res = await fetch("http://localhost:5000/api/rooms");
+  const rooms = await res.json();
+
+  const room = rooms.find(r => r._id === roomId);
+
+  if (!room) {
+    box.innerHTML = "<h2>Room not found</h2>";
+    return;
+  }
+
+  box.innerHTML = `
+    <h1>${room.type}</h1>
+    <p><b>Room No:</b> ${room.roomNo || "N/A"}</p>
+    <p><b>Description:</b> ${room.description || "Comfortable room"}</p>
+    <p><b>Status:</b> ${room.availability || "Available"}</p>
+    <div class="price">$${room.price} / night</div>
+    <button onclick="bookRoom('${room._id}')">Book This Room</button>
+  `;
+}
+
+function bookRoom(id){
+  localStorage.setItem("selectedRoomId", id);
+  window.location.href = "customer/book-room.html";
+}
+</script>
+
+</body>
+</html>
